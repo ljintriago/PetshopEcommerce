@@ -1,4 +1,5 @@
-const products = [
+import {  doc, getDoc, collection, getDocs, getFirestore, query, where, addDoc } from "firebase/firestore";
+/* const products = [
     { id:"1", name:"Pack de juguetes para perros", price:"$75", category:"toys", description:"Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa.", img:"https://live.staticflickr.com/1711/26329664625_e6ddce80be_c.jpg" },
     { id:"2", name:"Rascadores para gatos", price:"$500", category:"toys", description:"Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa.", img:"https://live.staticflickr.com/8474/8123042959_20687e5167_b.jpg" },
     { id:"3", name:"Hueso de juguete", price:"$10", category:"toys", description:"Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa.", img:"https://live.staticflickr.com/3045/2545717511_fa9ccf64cd_b.jpg" },
@@ -12,36 +13,66 @@ const products = [
     { id:"9", name:"Shampoo para perro", price:"$20", category:"health", description:"Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa.", img:"https://tiaecuador.vtexassets.com/arquivos/ids/164211/256307000.jpg?v=637052350346470000" },
 
     { id:"10", name:"Peine para mascota", price:"$55", category:"gadgets", description:"Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa.", img:"https://elmayoristaec.com/wp-content/uploads/2022/09/Cepillo-Para-Mascotas-1-1.jpg" },
-    { id:"11", name:"Guacales", price:"$100", category:"gadgets", description:"Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa.", img:"	https://gioatope.com/wp-content/uploads/2021/07/guacal-para-perro-plastico-grande.jpg" },
+    { id:"11", name:"Guacales", price:"$100", category:"gadgets", description:"Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa.", img:"https://gioatope.com/wp-content/uploads/2021/07/guacal-para-perro-plastico-grande.jpg" },
     { id:"12", name:"Placas para mascota", price:"$35", category:"gadgets", description:"Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa.", img:"https://www.identificatumascota.es/wp-content/uploads/2021/05/placa-personalizada-para-perro-hueso-a-color.jpg" },
 
     { id:"13", name:"Royal Canin 3KG", price:"$60", category:"food", description:"Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa.", img:"https://www.superpets.sg//image/cache/catalog/product/Royal%20Canin/Dog/Royal%20Canin%20Dog%20Adult%20Golden%20Retriever%201650x1650%20Emboss%20Watermark%20SKU%203182550751261-2000x2000.jpg" },
     { id:"14", name:"Whiskas Adulto Carne", price:"$50", category:"food", description:"Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa.", img:"https://m.media-amazon.com/images/I/61kFnC+Uo9L.jpg" },
     { id:"15", name:"Pro-Cat Adulto", price:"$200", category:"food", description:"Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa.", img:"https://www.supermercadosantamaria.com/documents/10180/10504/59835_G.jpg" },
-];
+]; */
 
 export const getProduct = (id) =>{
     return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            const product = products.find(p => p.id == id)
+        const db  = getFirestore();
+        const itemDoc = doc(db, "item", id);
 
-            if (product){
-                resolve(product);
+        getDoc(itemDoc)
+        .then((doc) => {
+            if(doc.exists()){
+                resolve({ id: doc.id, ...doc.data() });
             }
             else{
-                reject("No existe el producto");
+                resolve(null)
             }
-        },1000)
+        })
+        .catch((error) => {
+            reject(error);
+        });
     })
 };
 
-export const getProducts = (category) =>{
+export const getProducts = (categoryId) =>{
     return new Promise((resolve) => {
-        setTimeout(() => {
-            const productsFiltered = category ? products.filter(product => product.category == category) :  products;
+        const db = getFirestore();
+        const itemCollection = collection(db, "item")
 
-            resolve(productsFiltered);
-        },1000)
+        let q;
+        if(categoryId) {
+            q = query(itemCollection, where("categoryId", "==", categoryId));
+        }
+        else{
+            q = query(itemCollection);
+        }
+
+        getDocs(q)
+        .then((querySnapshot) => {
+            const products = querySnapshot.docs.map((doc) => {
+                return { id: doc.id, ...doc.data() }
+            });
+            resolve(products); 
+        })
+        .catch((error) => {
+            reject(error);
+        });
+        
     })
+};
+
+export const createOrder = (orden) => {
+    const db = getFirestore();
+
+    const orderCollection = collection(db, "orders");
+
+    return addDoc(orderCollection, orden);
 };
 

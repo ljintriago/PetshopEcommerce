@@ -5,18 +5,22 @@ import ItemList from "./ItemList";
 
 const ItemListcontainer = () => {
     const [items, setItems] = useState([]);
+    const [isLoading,setIsLoading] = useState(true);
     const { categoryId } = useParams();
 
     useEffect(() => {
         getProducts(categoryId)
         .then((response) => {
             setItems(response);
+        })
+        .finally(() => {
+            setIsLoading(false);
         });
     }, [categoryId])
 
     return(
         <>
-            <ItemList items={items}/>
+            <ItemList items={items} isLoading={isLoading}/>
         </>
     )
 }
